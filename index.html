@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang=“ku” dir=“rtl”>
+<head>
+  <meta charset=“UTF-8”>
+  <meta name=“viewport” content=“width=device-width, initial-scale=1.0”>
+  <title>PUK Official Portal</title>
+  <link rel=“stylesheet” href=“style.css”>
+  <!— Supabase & Confetti dscripts —>
+  <script src=“https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2”></script>
+  <script src=“https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js”></script>
+</head>
+<body>
+
+<div class=“app-frame”>
+
+  <!— Top bar —>
+  <div class=“top-bar”>
+    <div class=“action-circle” onclick=“resetToHome()”>✕</div>
+    <div style=“font-size:16px; font-weight:700;”>PUK Membership</div>
+    <div style=“display:flex; gap:8px;”>
+      <div class=“action-circle” onclick=“showForm()”>✍️</div>
+      <div class=“action-circle” onclick=“shareWebsite()”>↗</div>
+    </div>
+  </div>
+
+  <!— Music Player Bar —>
+  <div class=“anthem-bar”>
+    <div style=“display:flex; align-items:center;”>
+      <span class=“pulse-dot” id=“musicDot”></span>
+      <span style=“font-weight:600;”>سرودی یەکێتی (Anthem)</span>
+    </div>
+    <button class=“audio-btn” id=“audioToggleBtn” onclick=“toggleMusic()”>لێدان ▶</button>
+  </div>
+
+  <audio id=“pukAudio” loop>
+    <source src=“https://ia800902.us.archive.org/28/items/EyReqibKurdishNationalAnthem/Ey%20Reqib.mp3” type=“audio/mp3”>
+  </audio>
+
+  <!— SCREEN 1: HOME —>
+  <div id=“screenHome”>
+    <div class=“hero-box”>
+      <!— Kurdistan Flag Badge —>
+      <div class=“flag-badge”>
+        <svg viewBox=“0 0 60 40” width=“100%” height=“100%”>
+          <rect width=“60” height=“13.33” fill=“#ED2124”/>
+          <rect y=“13.33” width=“60” height=“13.33” fill=“#FFFFFF”/>
+          <rect y=“26.66” width=“60” height=“13.33” fill=“#278E43”/>
+          <circle cx=“30” cy=“20” r=“6” fill=“#F8B617”/>
+        </svg>
+      </div>
+      <!— Mam Jalal Photo —>
+      <img
+        src=“https://upload.wikimedia.org/wikipedia/commons/thumb/c/ca/Jalal_Talabani_May_2009.jpg/640px-Jalal_Talabani_May_2009.jpg”
+        alt=“Mam Jalal Talabani”
+        class=“hero-img”
+      >
+    </div>
+
+    <!— PUK Circular Emblem —>
+    <div class=“emblem-disc”>
+      <svg viewBox=“0 0 100 100” width=“76” height=“76”>
+        <circle cx=“50” cy=“50” r=“48” fill=“#ffffff” stroke=“#10572b” stroke-width=“2.5”/>
+        <text x=“50” y=“24” font-size=“6.5” font-weight=“900” fill=“#0d4722” text-anchor=“middle”>یه‌کێتیی نیشتمانیی کوردستان</text>
+        <text x=“24” y=“58” font-size=“9” font-weight=“900” fill=“#155724”>19</text>
+        <text x=“76” y=“58” font-size=“9” font-weight=“900” fill=“#155724”>75</text>
+        <path d=“M 50 68 C 47 60 48 53 50 45” stroke=“#1f8f4f” stroke-width=“3.5” stroke-linecap=“round”/>
+        <path d=“M 44 56 C 39 55 42 50 49 52” fill=“#2ecc71”/>
+        <path d=“M 53 51 C 59 49 57 44 50 46” fill=“#2ecc71”/>
+        <ellipse cx=“50” cy=“38” rx=“8” ry=“10” fill=“#e74c3c”/>
+        <circle cx=“50” cy=“38” r=“4” fill=“#c0392b”/>
+        <text x=“50” y=“86” font-size=“5” font-weight=“bold” fill=“#0d4722” text-anchor=“middle”>PATRIOTIC UNION</text>
+      </svg>
+    </div>
+
+    <!— Language Toggle —>
+    <div class=“lang-switcher”>
+      <button class=“lang-btn active” id=“btnKu” onclick=“setLanguage(‘ku’)”>کوردی</button>
+      <button class=“lang-btn” id=“btnEn” onclick=“setLanguage(‘en’)”>English</button>
+    </div>
+
+    <!— Texts from screenshot —>
+    <div class=“content-header”>
+      <h1 id=“txtTitle”>Patriotic Union of Kurdistan</h1>
+      <div class=“subtitle” id=“txtSub”>یەکێتیی نیشتمانیی کوردستان</div>
+      <div class=“question” id=“txtQuestion”>ئایا دەتەوێت ببیت بە ئەندام؟</div>
+      <p class=“desc” id=“txtDesc”>پەیوەندی بکە بە یەکێتییەوە و ببە بەشێک لە حیزبەکە.</p>
+    </div>
+
+    <!— Action Buttons —>
+    <div class=“actions”>
+      <button class=“btn-join” id=“btnYes” onclick=“showForm()”>بەڵێ، دەمەوێت ببم بە ئەندام</button>
+      <button class=“btn-bio” id=“btnBio” onclick=“showBio()”>ژیاننامەی مام جەلال (لە سفرەوە بۆ سەرۆکایەتی)</button>
+    </div>
+    <div class=“live-badge” id=“liveBadge”>🟢 1,429 هەڤاڵ تا ئێستا تۆمارکراون لە داتابەیس</div>
+  </div>
+
+  <!— SCREEN 2: REGISTRATION FORM —>
+  <div class=“form-section” id=“screenForm”>
+    <div class=“back-btn” onclick=“resetToHome()”>⬅ گەڕانەوە</div>
+    <h2 style=“font-size:18px; margin-bottom:4px; color:#4eed85;”>فۆرمی فەرمیی ئەندامبوون</h2>
+    <p style=“font-size:12px; color:var(—text-muted); margin-bottom:14px;”>زانیارییەکانت بنووسە بۆ دەرکردنی کارتی فەرمی ئەندامێتی.</p>
+
+    <form onsubmit=“processMembership(event)”>
+      <div class=“form-group”>
+        <label>ناوی چواری *</label>
+        <input type=“text” id=“inpName” class=“input-field” required placeholder=“ناوی چواری بنووسە”>
+      </div>
+
+      <div class=“form-group”>
+        <label>ژمارەی مۆبایل *</label>
+        <input type=“tel” id=“inpPhone” class=“input-field” required placeholder=“0770 / 0750 ...”>
+      </div>
+
+      <div class=“form-group”>
+        <label>شار / ناوچە *</label>
+        <select id=“inpCity” class=“select-field” required>
+          <option value=“سلێمانی (Sulaymaniyah)”>سلێمانی / Sulaymaniyah</option>
+          <option value=“هەولێر (Erbil)”>هەولێر / Erbil</option>
+          <option value=“کەرکووک (Kirkuk)”>کەرکووک / Kirkuk</option>
+          <option value=“دهۆک (Duhok)”>دهۆک / Duhok</option>
+          <option value=“هەڵەبجە (Halabja)”>هەڵەبجە / Halabja</option>
+          <option value=“گەرمیان (Garmiyan)”>گەرمیان / Garmiyan</option>
+          <option value=“دەرەوەی وڵات (Diaspora)”>دەرەوەی وڵات / Diaspora</option>
+        </select>
+      </div>
+
+      <button type=“submit” class=“btn-join” style=“width:100%; margin-top:8px;”>
+        تۆمارکردن و دەرکردنی کارت 🪪
+      </button>
+    </form>
+  </div>
+
+  <!— SCREEN 3: GENERATED VIP ID CARD —>
+  <div class=“card-modal” id=“screenCard”>
+    <h2 style=“color:var(—gold); font-size:18px; margin-bottom:4px;”>🎉 پیرۆزە! کارتەکەت دەرچوو</h2>
+    <p style=“font-size:12px; color:var(—text-muted); margin-bottom:14px;”>کارتەکەت دابگرە و بڵاوی بکەرەوە.</p>
+    <canvas id=“membershipCardCanvas” width=“800” height=“480”></canvas>
+    <div style=“display:flex; gap:8px;”>
+      <button class=“btn-join” style=“flex:1;” onclick=“downloadCard()”>داگرتن (Download) 📥</button>
+      <button class=“btn-bio” style=“flex:1;” onclick=“resetToHome()”>تەواو</button>
+    </div>
+  </div>
+
+  <!— SCREEN 4: MAM JALAL ZERO TO HERO —>
+  <div class=“bio-section” id=“screenBio”>
+    <div class=“back-btn” onclick=“resetToHome()”>⬅ گەڕانەوە</div>
+    <h2 style=“font-size:18px; color:#4eed85; margin-bottom:4px;”>مام جەلال: لە سفرەوە بۆ سەرۆکایەتی</h2>
+    
+    <div class=“bio-item”>
+      <div class=“year”>١٩٣٣ - گوندی کەلکان</div>
+      <div class=“title”>لەدایکبوونی سەرکردە</div>
+      <div class=“desc”>لە بناری چیای کۆسرەت لەدایکبوو و هەر زوو بەهرەی سەرکردایەتی تێدا دەرکەوت.</div>
+    </div>
+    <div class=“bio-item”>
+      <div class=“year”>١٩٥٩ - یاساناس و شۆڕشگێڕ</div>
+      <div class=“title”>کۆلێژی یاسا لە بەغدا</div>
+      <div class=“desc”>کۆلێژی یاسای تەواو کرد و بووە دەنگی ئازادیخوازی گەلی کورد.</div>
+    </div>
+    <div class=“bio-item”>
+      <div class=“year”>١٩٧٥ - دیمەشق</div>
+      <div class=“title”>دامەزراندنی یەکێتیی نیشتمانیی کوردستان</div>
+      <div class=“desc”>دوای نسکۆ، بێئومێد نەبوو و بڵێسەی شۆڕشی نوێی هەڵگیرساندەوە.</div>
+    </div>
+    <div class=“bio-item”>
+      <div class=“year”>٢٠٠٥ - بەغدا</div>
+      <div class=“title”>یەکەم سەرۆک کۆماری کورد لە عێراق</div>
+      <div class=“desc”>بوو بە یەکەمین سەرۆک کۆماری کورد لە مێژووی عێراق و ناسرا بە ‘سەمام ئەلئەمان’.</div>
+    </div>
+  </div>
+
+</div>
+
+<script src=“app.js”></script>
+</body>
+</html>
